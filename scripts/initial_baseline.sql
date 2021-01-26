@@ -1,0 +1,3 @@
+CREATE TABLE history (
+    pk_id SERIAL PRIMARY KEY NOT NULL
+)
