@@ -1,78 +1,104 @@
 package directory
 
 import (
-	"fmt"
-	"github.com/danielMensah/sqlr/internal/params"
-	"github.com/danielMensah/sqlr/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-var absolutePath string
-
-func init() {
-	path, err := os.Getwd()
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	absolutePath = filepath.Join(path, "temp")
-}
-
-func TestBaseline(t *testing.T) {
-	type args struct {
-		path     string
-		fileType string
-		fileName string
-	}
+func TestCreateFolder(t *testing.T) {
 	tests := []struct {
-		name            string
-		args            args
-		expectedMessage string
-		expectedErr     error
+		name        string
+		path        string
+		expectedErr string
 	}{
 		{
-			name: "can baseline an sql file",
-			args: args{
-				path:     absolutePath,
-				fileName: "example1.sql",
-				fileType: params.FileTypes["-f"],
-			},
-			expectedMessage: BaselineResponse,
-			expectedErr:     nil,
+			name:        "ok",
+			path:        "./test",
+			expectedErr: "",
 		},
 		{
-			name: "cannot baseline a missing sql file",
-			args: args{
-				path:     absolutePath,
-				fileName: "missing.sql",
-				fileType: params.FileTypes["-f"],
-			},
-			expectedMessage: "",
-			expectedErr:     FileNotFoundError,
-		},
-		{
-			name: "cannot baseline a non existent source path",
-			args: args{
-				path:     filepath.Join(absolutePath, "nonexistent"),
-				fileName: "missing.sql",
-				fileType: params.FileTypes["-f"],
-			},
-			expectedMessage: "",
-			expectedErr:     SourcePathError,
+			name:        "invalid path",
+			path:        "",
+			expectedErr: "creating folders",
 		},
 	}
 	for _, tt := range tests {
-		got, err := Baseline(tt.args.path, tt.args.fileName, tt.args.fileType)
+		t.Run(tt.name, func(t *testing.T) {
+			err := CreateFolder(tt.path)
 
-		assert.Equal(t, tt.expectedErr, errors.Context(err))
-		assert.Equal(t, tt.expectedMessage, got)
+			if tt.expectedErr == "" {
+				_, err := os.Stat(tt.path)
 
-		t.Cleanup(func() {
-			_ = os.RemoveAll(filepath.Join(absolutePath, "release"))
+				assert.NoError(t, err)
+				assert.False(t, os.IsNotExist(err))
+
+				err = os.Remove(tt.path)
+				if err != nil {
+					log.Fatal("could not remove csv test file: %w", err)
+				}
+			} else {
+				assert.Contains(t, err.Error(), tt.expectedErr)
+			}
 		})
 	}
+}
+
+func TestCopyToDestination(t *testing.T) {
+	tests := []struct {
+		name        string
+		source      string
+		destination string
+		expectedErr string
+	}{
+		{
+			name:        "can copy to destination",
+			source:      "./schema",
+			destination: "./current/schema",
+			expectedErr: "",
+		},
+		{
+			name:        "invalid source",
+			source:      "",
+			destination: "./current/schema",
+			expectedErr: "get source file content",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := CreateFolder(tt.source)
+			assert.NoError(t, err)
+
+			err = CreateFolder(tt.destination)
+			assert.NoError(t, err)
+
+			filePath := filepath.Join(tt.source, "test.sql")
+			file, err := os.Create(filePath)
+			if err != nil {
+				assert.NoError(t, err)
+			}
+			defer file.Close()
+
+			err = CopyToDestination(filePath, filepath.Join(tt.destination, "test.sql"))
+			if tt.expectedErr == "" {
+				assert.NoError(t, err)
+
+				_, err := os.Stat(filepath.Join(tt.destination, "test.sql"))
+
+				assert.False(t, os.IsNotExist(err))
+				assert.NoError(t, err)
+			} else {
+				assert.Contains(t, err.Error(), tt.expectedErr)
+			}
+
+			cleanup()
+		})
+	}
+}
+
+func cleanup() {
+	_ = os.RemoveAll("./schema")
+	_ = os.RemoveAll("./current")
 }
