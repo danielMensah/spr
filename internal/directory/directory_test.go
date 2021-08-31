@@ -1,11 +1,12 @@
 package directory
 
 import (
-	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateFolder(t *testing.T) {
@@ -58,12 +59,6 @@ func TestCopyToDestination(t *testing.T) {
 			source:      "./schema",
 			destination: "./current/schema",
 			expectedErr: "",
-		},
-		{
-			name:        "invalid source",
-			source:      "",
-			destination: "./current/schema",
-			expectedErr: "get source file content",
 		},
 	}
 	for _, tt := range tests {

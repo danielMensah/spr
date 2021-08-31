@@ -14,8 +14,8 @@ const (
 )
 
 type Baseline struct {
-	Folder      string `arg required help:"Folder where the sql file resides"`
-	FileName    string `arg required help:"SQL file name to baseline"`
+	Folder      string `arg:"" required:"" help:"Folder where the sql file resides"`
+	FileName    string `arg:"" required:"" help:"SQL file name to baseline"`
 	Source      string
 	Destination string
 }

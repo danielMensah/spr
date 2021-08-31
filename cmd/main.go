@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+
 	"github.com/alecthomas/kong"
 	"github.com/danielMensah/sqlr/internal/command"
 )
 
 var cli struct {
-	Baseline command.Baseline `cmd name:"baseline" help:"Baseline new sql file"`
-	Deploy   command.Deploy   `cmd name:"deploy" help:"Deploy sql files"`
+	Baseline command.Baseline `cmd:"" name:"baseline" help:"Baseline new sql file"`
+	Deploy   command.Deploy   `cmd:"" name:"deploy" help:"Deploy sql files"`
 }
 
 func main() {

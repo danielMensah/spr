@@ -1,10 +1,9 @@
 package command
 
 type Deploy struct {
-	Stage string `required short:"s" help:"Deployment environment (dev, demo, prod)"`
 }
 
-func (d Deploy) Run() error {
+func (d Deploy) Run(ctx *Context) error {
 
 	return nil
 }
